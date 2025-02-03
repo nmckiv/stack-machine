@@ -1,0 +1,52 @@
+	jump MAIN
+GCD 
+	push 1
+	load SP
+	push 0
+	eq
+	brz LABEL1
+	push 0
+	load SP
+	retv
+	jump LABEL2
+LABEL1
+	push 1
+	load SP
+	push 0
+	load SP
+	push 0
+	load SP
+	push 1
+	load SP
+	div
+	push 1
+	load SP
+	mul
+	sub
+	push 2
+	call GCD
+	retv
+LABEL2     				  
+	ret
+MAIN 
+	prints "Euclid's GCD\n"
+	push 0
+	push 0
+	prints "Enter the first number:\t"
+	read
+	push 0
+	store SP
+	prints "Enter the second number:\t"
+	read
+	push 1
+	store SP
+	push 0
+	load SP
+	push 1
+	load SP
+	push 2
+	call GCD
+	prints "Greatest Common Divisor:\t"
+	print
+	prints "\n"
+	end

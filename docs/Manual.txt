@@ -1,0 +1,247 @@
+System Information:
+
+	3 Stacks
+		-Data stack
+			Holds computation variables
+
+		-Frame stack
+			Records past starting stack frames for CALL instructions
+
+		-Call Stack
+			Records return addresses for CALL instructions
+
+	4 Registers
+		-Program Counter 		(PC)
+		-Current stack frame pointer	(SP)
+		-Top of data stack 		(TOP)
+		-General Purpose Register 	(GPREG)
+
+To compile: run makefile
+to run: ./stack-machine with the appropriate flags
+
+--file to specify path to instruction file
+--debug to launch the visualization TUI
+
+If --debug is not specified the machine will run invisible at full speed with only console IO
+
+
+Instruction Set Architecture:
+
+26 total instruction elements:
+ADD
+BRT
+BRZ
+CALL
+DIV
+DUP
+END
+EQ
+GE
+GT
+JUMP
+LABEL
+LOAD
+LT
+MOD
+MUL
+POP
+PRINT
+PRINTS
+PUSH
+READ
+RET
+RETV
+SAVE
+STORE
+SUB
+
+Everything is case-insensitive
+
+Arithmetic/Logic:
+
+    ADD
+	-Usage:		ADD
+	-Pre Stack:	(left, right)
+	-Post Stack:	result
+	-Side Effects:	Result is pushed to GPREG
+	-Description:	Pops two values off the stack and computes left + right and pushes result to the stack and GPREG
+
+    SUB
+	-Usage:		SUB
+	-Pre Stack:	(left, right)
+	-Post Stack:	result
+	-Side Effects:	Result is pushed to GPREG
+	-Description:	Pops two values off the stack and computes left - right and pushes result to the stack and GPREG
+
+    MUL
+	-Usage:		MUL
+	-Pre Stack:	(left, right)
+	-Post Stack:	result
+	-Side Effects:	Result is pushed to GPREG
+	-Description:	Pops two values off the stack and computes left * right and pushes result to the stack and GPREG
+
+    DIV
+	-Usage:		DIV
+	-Pre Stack:	(left, right)
+	-Post Stack:	result
+	-Side Effects:	Result is pushed to GPREG
+	-Description:	Pops two values off the stack and computes left / right and pushes result to the stack and GPREG
+
+    MOD
+	-Usage:		MOD
+	-Pre Stack:	(left, right)
+	-Post Stack:	result
+	-Side Effects:	Result is pushed to GPREG
+	-Description:	Pops two values off the stack and computes left % right and pushes result to the stack and GPREG
+
+    GE
+	-Usage:		GE
+	-Pre Stack:	(left, right)
+	-Post Stack:	result
+	-Side Effects:	Result is pushed to GPREG
+	-Description:	Pops two values off the stack and computes left >= right.  The result is 1 if left >= right, otherwise 0.  Pushes result to stack and GPREG.
+
+    GT
+	-Usage:		GT
+	-Pre Stack:	(left, right)
+	-Post Stack:	result
+	-Side Effects:	Result is pushed to GPREG
+	-Description:	Pops two values off the stack and computes left > right.  The result is 1 if left > right, otherwise 0.  Pushes result to stack and GPREG.
+
+    LT
+	-Usage:		LT
+	-Pre Stack:	(left, right)
+	-Post Stack:	result
+	-Side Effects:	Result is pushed to GPREG
+	-Description:	Pops two values off the stack and computes left < right.  The result is 1 if left < right, otherwise 0.  Pushes result to stack and GPREG.
+
+    EQ
+	-Usage:		EQ
+	-Pre Stack:	(left, right)
+	-Post Stack:	result
+	-Side Effects:	Result is pushed to GPREG
+	-Description:	Pops two values off the stack and computes left == right.  The result is 1 if left == right, otherwise 0.  Pushes result to stack and GPREG.
+
+
+Branching:
+    JUMP
+	-Usage:		JUMP		JUMP <Label or int literal>
+	-Pre Stack:	(Location)	()
+	-Post Stack:	()		()
+	-Side Effects:	PC is changed to location
+	-Description:	Jumps to location optionally specified with a label or integer literal.  If no location is specified it will pop off the top of the stack and jump there.
+
+    BRT
+	-Usage:		BRT			BRT <Label or int literal>
+	-Pre Stack:	(Value, Location)	(Value)
+	-Post Stack:	()			()
+	-Side Effects:	PC is changed to location
+	-Description:	Jumps to location optionally specified with a label or integer literal only if the value is not equal to 0
+
+    BRZ
+	-Usage:		BRZ			BRZ <Label or int literal>
+	-Pre Stack:	(Value, Location)	(Value)
+	-Post Stack:	()			()
+	-Side Effects:	PC is changed to location
+	-Description:	Jumps to location optionally specified with a label or integer literal only if the value is equal to 0
+
+    CALL
+	-Usage:		CALL			CALL <Label or int literal>
+	-Pre Stack:	(Params, Location)	(Params)
+	-Post Stack:	()			()
+	-Side Effects:	PC is changed to location, return address and stack frame are saved
+	-Description:	Saves current PC + 1 and SP as return address and stack frame respectively.  Jumps to location found either in stack or specified in argument.
+
+    RET
+	-Usage:		RET
+	-Pre Stack:	Current frame
+	-Post Stack:	Previous frame
+	-Side Effects:	Current stack frame is cleared.  PC and SP are updated.
+	-Description:	Return addresses and previous stack pointers are popped from their stacks.  The current stack frame is cleared.  PC and SP are updated.
+
+    RETV
+	-Usage:		RETV
+	-Pre Stack:	Current frame
+	-Post Stack:	Previous frame
+	-Side Effects:	GPREG gets return value.  Current stack frame is cleared.  PC and SP are updated.
+	-Description:	The top of the current frame is copied into GPREG as the return value.  Return addresses and previous stack pointers are popped from their stacks.  The current 			stack frame is cleared.  PC and SP are updated.
+
+Memory:
+
+    PUSH
+	-Usage:		PUSH			PUSH <int literal, label, register>
+	-Pre Stack:	()			()
+	-Post Stack:	(Value)			(Value)
+	-Side Effects:	GPREG is set to pushed value
+	-Description:	Pushes a value to memory.  If no value is specified then push the value of GPREG.
+
+    POP
+	-Usage:		POP
+	-Pre Stack:	(Value)
+	-Post Stack:	()
+	-Side Effects:	GPREG is set to popped value
+	-Description:	Pops a value from memory and copies it into GPREG
+
+    DUP
+	-Usage:		POP
+	-Pre Stack:	(Value)
+	-Post Stack:	(Value, Value)
+	-Side Effects:	GPREG is set to duplicated value
+	-Description:	Duplicates the top value on the stack
+
+    LOAD
+	-Usage:		LOAD			LOAD <int literal, label, register>
+	-Pre Stack:	(Address)		(Address)
+	-Post Stack:	(Value)			(Value)
+	-Side Effects:	GPREG is set to loaded value
+	-Description:	Fetches a value from memory.  Argument is offset for address, if absent go from 0.
+
+    SAVE
+	-Usage:		SAVE			SAVE <int literal, label, register>
+	-Pre Stack:	(Value, Address)	(Value, Address)
+	-Post Stack:	(Value)			(Value)
+	-Side Effects:	GPREG is set to saved value
+	-Description:	Saves a value to memory.  Argument is offset for address, if absent go from 0.  Leaves value on the stack afterward.
+
+    STORE
+	-Usage:		SAVE			SAVE <int literal, label, register>
+	-Pre Stack:	(Value, Address)	(Value, Address)
+	-Post Stack:	(Value)			(Value)
+	-Side Effects:	GPREG is set to saved value
+	-Description:	Saves a value to memory.  Argument is offset for address, if absent go from 0.  Removes value from the stack.
+
+IO:
+
+    READ
+	-Usage:		READ
+	-Pre Stack:	()
+	-Post Stack:	(Value)
+	-Side Effects:	GPREG is set to read in value
+	-Description:	Reads a value in from the UI and stores on the stack.
+
+    PRINT
+	-Usage:		PRINT
+	-Pre Stack:	(Value)
+	-Post Stack:	()
+	-Side Effects:	GPREG is set to printed value.
+	-Description:	Pops the top of the stack and prints the value to the UI.
+
+    PRINTS
+	-Usage:		PRINTS <"string">
+	-Pre Stack:	()
+	-Post Stack:	()
+	-Side Effects:	
+	-Description:	Prints the argument as a string to the UI.  Argument must be enclosed in quotation marks to be valid.
+
+Misc:
+
+    LABEL
+	-Description:	Labels can be used to mark line numbers and substituted for integer literals in instructions.  Unique labels can only be defined once.  Labels can be used before 			they are declared in the isntructions.  Labels are case-insensitive.
+
+    END
+	-Usage:		END
+	-Pre Stack:	()
+	-Post Stack:	()
+	-Side Effects:	Exits program with success code.
+	-Description:	All programs must be concluded with an END instruction to be valid.  Closes program with success.
+
