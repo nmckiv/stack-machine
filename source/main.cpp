@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
                 }
             }
             else {
-                std::cout << "Please specify a file" << std::endl;
+                std::cout << "Incorrect options: use -h or --help to see all available options." << std::endl;
                 return 1;
             }
 
