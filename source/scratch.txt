@@ -1,2 +1,0 @@
-# Libraries
-LIBS = -lftxui-component -lftxui-dom -lftxui-screen
