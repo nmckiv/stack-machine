@@ -125,7 +125,7 @@ int executionStep() {
     pc++;
 
     //Execute instruction and return status
-    // std::transform(currInst.begin(), currInst.end(), currInst.begin(), [](unsigned char c) {return std::tolower(c);});
+    std::transform(currInst.begin(), currInst.end(), currInst.begin(), [](unsigned char c) {return std::tolower(c);});
     return executeInstruction(currInst);
 }
 
