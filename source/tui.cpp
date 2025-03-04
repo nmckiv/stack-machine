@@ -67,11 +67,9 @@ int TUI() {
 
     auto layout = [&] {
         registers[0] = "Program Counter: " + std::to_string(pc);
-        registers[1] = "General Purpose Register: " + std::to_string(gpreg);
+        registers[1] = "Stack Frame Pointer: " + std::to_string(stackPointer);
         registers[2] = "Data Stack Top: " + std::to_string(top);
-        registers[3] = "Data Stack Pointer: " + std::to_string(dataStackPointer);
-        registers[4] = "Call Stack Pointer: " + std::to_string(callStackPointer);
-        registers[4] = "Stack Pointer: " + std::to_string(stackPointer);
+        registers[3] = "General Purpose Register: " + std::to_string(gpreg);
 
         int midpoint = 19;
         int height = 39;

@@ -11,10 +11,10 @@ System Information:
 			Records return addresses for CALL instructions
 
 	4 Registers
-		-Program Counter 		(PC)
+		-Program Counter				(PC)
 		-Current stack frame pointer	(SP)
-		-Top of data stack 		(TOP)
-		-General Purpose Register 	(GPREG)
+		-Top of data stack 				(TOP)
+		-General Purpose Register 		(GPREG)
 
 To compile: run makefile
 to run: ./stack-machine with the appropriate flags

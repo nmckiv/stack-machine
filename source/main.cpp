@@ -1,3 +1,7 @@
+//To build either use the makefile or run "g++ main.cpp machine.cpp instructions.cpp tui.cpp console.cpp -o stack-machine -std=c++17 -I./ftxui -L./ftxui -lftxui-component -lftxui-dom -lftxui-screen"
+//To run invisible use ./stack-machine -f <filename>
+//To run with debug interface use ./stack-machine -f <filename> --debug
+
 #include <iostream>
 #include <fstream>
 #include "cxxopts.hpp"
