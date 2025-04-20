@@ -1,0 +1,130 @@
+program Example;
+
+function funa(): void;
+
+function funaa(): void;
+
+function funab(): void;
+
+function funaba(): void;
+
+begin
+end.
+
+begin
+end.
+
+function funaaa(): void;
+
+function funaaaa(): void;
+
+begin
+end;
+
+begin
+end;
+
+begin
+end;
+
+begin
+end;
+
+function funb(): void;
+
+begin
+end;
+
+begin
+end.
+
+main {
+    int x, y, z;
+    funa(a, b) {
+        int i, j;
+        funaa(b, c, d) {
+            int k, l;
+            funaaa(c, d) {
+                int m, n;
+                funaaaa(e) {
+                    print a;
+                    print b;
+                    print i;
+                    print k;
+                    print z;
+                    print e;
+                    print d;
+                }
+                funaaaa(d);
+            }
+            funaaa(c, d)
+        }
+        funaa(a, b, 25);
+    }
+
+    x = 10;
+    y = 15;
+    z = 20;
+
+    print funa(x, y);
+}
+
+funa    1
+funb    1
+funaa   2
+funaaa  3
+funaaaa 4
+funab   2
+funaba  3
+funb    1
+
+Chat says:
+10
+10
+0
+0
+20
+25
+25
+
+main {
+    int x, y, z;
+    funa(a, b): int {
+        int i, j;
+        funaa(b, c, d): int {
+            int k, l;
+            funaaa(c, d): int {
+                int m, n;
+                funaaaa(e): int {
+                    print a;
+                    print b;
+                    print i;
+                    print k;
+                    print z;
+                    print e;
+                    print d;
+                    return b;
+                }
+                return funaaaa(d);
+            }
+            return funaaa(c, d)
+        }
+        print funaa(a, b, 25);
+    }
+
+    x = 10;
+    y = 15;
+    z = 20;
+
+    funa(x, y);
+}
+
+Expected output:
+10
+10
+0
+0
+20
+25
+25
+10

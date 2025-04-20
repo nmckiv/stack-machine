@@ -1,0 +1,112 @@
+jump MAIN
+FUNA
+push 0
+push 0
+loadlex 1 0
+loadlex 1 1
+push 25
+push 3
+calllex FUNAA 3 2
+print
+prints "\n"
+retlex
+FUNAA
+push 0
+push 0
+loadlex 2 1
+loadlex 2 2
+push 2
+calllex FUNAAA 2 3
+retvlex
+FUNAAA
+push 0
+push 0
+loadlex 3, 1
+push 1
+calllex FUNAAAA 1 4
+retvlex
+FUNAAAA
+loadlex 1 0
+print
+prints "\n"
+loadlex 2 0
+print
+prints "\n"
+loadlex 1 2
+print
+prints "\n"
+loadlex 2 3
+print
+prints "\n"
+loadlex 0 2
+print
+prints "\n"
+loadlex 4 0
+print
+prints "\n"
+loadlex 3 1
+print
+prints "\n"
+loadlex 2 0
+retvlex
+MAIN
+push 0
+push 0
+push 0
+push 10
+storelex 0 0
+push 15
+storelex 0 1
+push 20
+storelex 0 2
+loadlex 0 0
+loadlex 0 1
+push 2
+calllex FUNA 2 1
+end
+
+
+
+
+
+
+
+
+
+// Evaluate expression
+// branch true to if body
+// branch zero to else body
+// at the end branch out
+
+
+
+EuclidsGCDGCD
+push 0
+// Local vars
+// Statements
+
+push v
+push 0
+eq
+brt TRUE_BODY_0
+brz FALSE_BODY_0
+
+TRUE_BODY_0
+|
+|
+|
+jump END_IFELSE_0
+
+FALSE_BODY_0
+|
+|
+|
+jump END_IFELSE_0
+
+END_IFELSE_0
+
+
+
+loadlex 1 2
+retvlex
+// End EuclidsGCDGCD

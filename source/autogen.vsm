@@ -1,0 +1,103 @@
+jump MAIN
+WhileLoopsFactorial
+push 0
+push 1
+storelex 0 1
+WHILE_LOOP_TOP_0
+loadlex 1 0
+push 1
+gt
+brz WHILE_LOOP_END_0
+loadlex 0 1
+loadlex 1 0
+mul
+storelex 0 1
+loadlex 1 0
+push 1
+sub
+storelex 1 0
+jump WHILE_LOOP_TOP_0
+WHILE_LOOP_END_0
+loadlex 0 1
+storelex 1 1
+loadlex 1 1
+retvlex
+WhileLoopsCountdown
+push 0
+WHILE_LOOP_TOP_1
+loadlex 1 0
+push 0
+gt
+brz WHILE_LOOP_END_1
+loadlex 1 0
+push 1
+sub
+storelex 1 0
+loadlex 1 0
+print
+prints " "
+jump WHILE_LOOP_TOP_1
+WHILE_LOOP_END_1
+prints "\n"
+retlex
+WhileLoopsStars
+push 0
+push 1
+storelex 0 2
+WHILE_LOOP_TOP_2
+loadlex 0 2
+loadlex 1 0
+le
+brz WHILE_LOOP_END_2
+push 1
+storelex 0 3
+WHILE_LOOP_TOP_3
+loadlex 0 3
+loadlex 0 2
+le
+brz WHILE_LOOP_END_3
+prints "*"
+loadlex 0 3
+push 1
+add
+storelex 0 3
+jump WHILE_LOOP_TOP_3
+WHILE_LOOP_END_3
+prints "\n"
+loadlex 0 2
+push 1
+add
+storelex 0 2
+jump WHILE_LOOP_TOP_2
+WHILE_LOOP_END_2
+retlex
+MAIN
+push 0
+push 0
+push 0
+push 0
+push 0
+prints "Enter a number: "
+read
+storelex 0 0
+prints "\n"
+loadlex 0 0
+calllex WhileLoopsFactorial 1 1
+storelex 0 1
+prints "Factorial of "
+loadlex 0 0
+print
+prints " is "
+loadlex 0 1
+print
+prints "\n"
+prints "Countdown:\n"
+loadlex 0 0
+calllex WhileLoopsCountdown 1 1
+prints "Enter rows for star triangle: "
+read
+storelex 0 4
+prints "\n"
+loadlex 0 4
+calllex WhileLoopsStars 1 1
+END

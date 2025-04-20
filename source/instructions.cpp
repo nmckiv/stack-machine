@@ -213,6 +213,7 @@ int call(std::string args) {
             // stackPointer += dataStack[dataStackPointer - 2];
             pushFrame(stackPointer);
             stackPointer = dataStackPointer - 2 - dataStack[dataStackPointer - 2];
+            // lexStack[callStackPointer] = 1; // Assume first-order functions unless explicitly specified with calllex instruction
             callStack[callStackPointer++] = pc;
             pc = dataStack[dataStackPointer - 1];
             dataStackPointer -= 2;
@@ -234,6 +235,7 @@ int call(std::string args) {
                 // stackPointer += dataStack[dataStackPointer - 1];
                 pushFrame(stackPointer);
                 stackPointer = dataStackPointer - 1 - dataStack[dataStackPointer - 1];
+                // lexStack[callStackPointer] = 1; // Assume first-order functions unless explicitly specified with calllex instruction
                 callStack[callStackPointer++] = pc;
                 pc = labels.find(argsBuffer[0])->second;
                 dataStackPointer--;
@@ -247,6 +249,53 @@ int call(std::string args) {
     }
     else {
         errorString += "Invalid args for instruction 'call " + args + "'\n";
+        status++;
+    }
+    return status;
+}
+int calllex(std::string args) {
+    std::transform(args.begin(), args.end(), args.begin(), [](unsigned char c) {return std::tolower(c);});
+    int status = 0;
+    int size = split(args);
+    if (size == 3) {
+        auto dest = labels.find(argsBuffer[0]);
+        if (dest != labels.end()) {
+            stackPointer = dataStackPointer - stoi(argsBuffer[1]);
+            lexStack[frameStackPointer] = stoi(argsBuffer[2]);
+            pushFrame(stackPointer);
+            callStack[callStackPointer++] = pc;
+            pc = labels.find(argsBuffer[0])->second;
+            // dataStackPointer--;
+            top = dataStack[dataStackPointer - 1];
+        }
+        else {
+            errorString += "No label '" + argsBuffer[0] + "' found for instruction 'calllex " + args + "'\n";
+            status++;
+        }
+    }
+    else {
+
+        // auto dest = labels.find(argsBuffer[0]);
+        // if (dest != labels.end()) {
+        //     if ((dataStackPointer - 1 - dataStack[dataStackPointer - 1]) < stackPointer) {
+        //         errorString += "Stack frame is not big enough to contain arguments\n";
+        //         status++;
+        //     }
+        //     else {
+        //         pushFrame(stackPointer);
+        //         stackPointer = dataStackPointer - 1 - dataStack[dataStackPointer - 1];
+        //         lexStack[callStackPointer] = stoi(argsBuffer[1]);
+        //         callStack[callStackPointer++] = pc;
+        //         pc = labels.find(argsBuffer[0])->second;
+        //         dataStackPointer--;
+        //         top = dataStack[dataStackPointer - 1];
+        //     }
+        // }
+        // else {
+        //     errorString += "No label '" + argsBuffer[0] + "' found for instruction 'call " + args + "'\n";
+        //     status++;
+        // }
+        errorString += "Invalid arguments for instruction 'calllex " + args + "'\n";
         status++;
     }
     return status;
@@ -305,6 +354,26 @@ int eq(std::string args) {
         }
         else {
             dataStack[dataStackPointer - 2] = gpreg = (dataStack[dataStackPointer - 2] == dataStack[dataStackPointer - 1]) ? 1 : 0;
+            dataStackPointer--;
+            top = dataStack[dataStackPointer - 1];
+        }
+    }
+    else {
+        errorString += "Invalid args for instruction 'eq " + args + "'\n";
+        status++;
+    }
+    return status;
+}
+int neq(std::string args) {
+    int status = 0;
+    int size = split(args);
+    if (size == 0) {
+        if (dataStackPointer - stackPointer < 2) {
+            errorString += "Instruction 'eq' requires at least two items on the current stack frame\n";
+            status++;
+        }
+        else {
+            dataStack[dataStackPointer - 2] = gpreg = (dataStack[dataStackPointer - 2] != dataStack[dataStackPointer - 1]) ? 1 : 0;
             dataStackPointer--;
             top = dataStack[dataStackPointer - 1];
         }
@@ -415,10 +484,55 @@ int load(std::string args) {
         else if (argsBuffer[0] == "top") {
             dataStack[dataStackPointer - 1] = gpreg = top = dataStack[dataStack[dataStackPointer - 1] + top];
         }
+        else {
+            int frame_backtrack;
+                frame_backtrack = std::stoi(argsBuffer[0]);
+                dataStack[dataStackPointer - 1] = gpreg = top = dataStack[callStack[callStackPointer - frame_backtrack] + dataStack[dataStackPointer - 1]];
+                //printf("callstack at %d - %d is %d\n", callStackPointer, frame_backtrack, callStack[callStackPointer - frame_backtrack]);
+        }
     }
     else {
         errorString += "Invalid args for instruction 'load " + args + "'\n";
         status++;
+    }
+    return 0;
+}
+int loadlex(std::string args) {
+    std::transform(args.begin(), args.end(), args.begin(), [](unsigned char c) {return std::tolower(c);});
+    int status = 0;
+    int size = split(args);
+    if (size == 0) {
+        errorString += "Invalid args for instruction 'loadlex " + args + "'\n";
+        status++;
+    }
+    else if (size == 2) {
+        // Get address of last call frame with specified scope
+        int addr = -1;
+
+        // Lexstack dump for debugging
+        // for (int x = callStackPointer - 1; x >= 0; x--) {
+        //     printf("%d?|?\n", lexStack[x]);
+        // }
+
+        // printf("Entering stackdump\n");
+        for (int x = callStackPointer - 1; x >= 0; x--) {
+            // printf("lex stack at %d is %d\n", x, lexStack[x]);
+            if (lexStack[x] == stoi(argsBuffer[0])) {
+                // printf("Breaking out of loop at index %d\n", x);
+                addr = x;
+                break;
+            } 
+        }
+        // printf("Exiting stackdump\n");
+
+        if (addr == -1) {
+            errorString += "No lex frame found with scope " + argsBuffer[0] + "\n";
+            status++;
+        }
+        else {
+            int offset = stoi(argsBuffer[1]);
+            dataStack[dataStackPointer++] = gpreg = top = dataStack[frameStack[addr] + offset];
+        }
     }
     return 0;
 }
@@ -427,7 +541,7 @@ int lt(std::string args) {
     int size = split(args);
     if (size == 0) {
         if (dataStackPointer - stackPointer < 2) {
-            errorString += "Instruction 'gt' requires at least two items on the current stack frame\n";
+            errorString += "Instruction 'lt' requires at least two items on the current stack frame\n";
             status++;
         }
         else {
@@ -437,7 +551,27 @@ int lt(std::string args) {
         }
     }
     else {
-        errorString += "Invalid args for instruction 'gt " + args + "'\n";
+        errorString += "Invalid args for instruction 'lt " + args + "'\n";
+        status++;
+    }
+    return status;
+}
+int le(std::string args) {
+    int status = 0;
+    int size = split(args);
+    if (size == 0) {
+        if (dataStackPointer - stackPointer < 2) {
+            errorString += "Instruction 'le' requires at least two items on the current stack frame\n";
+            status++;
+        }
+        else {
+            dataStack[dataStackPointer - 2] = gpreg = (dataStack[dataStackPointer - 2] <= dataStack[dataStackPointer - 1]) ? 1 : 0;
+            dataStackPointer--;
+            top = dataStack[dataStackPointer - 1];
+        }
+    }
+    else {
+        errorString += "Invalid args for instruction 'le " + args + "'\n";
         status++;
     }
     return status;
@@ -676,6 +810,37 @@ int ret(std::string args) {
     }
     return status;
 }
+int retlex(std::string args) {
+    int status = 0;
+    int size = split(args);
+    if (size == 0) {
+        //Pop previous frame from frame stack
+        int prev = popFrame();
+        if (prev == -1) {
+            errorString += "No stack frame to return to in instructon 'ret'\n";
+            status++;
+        }
+        else {
+            prev = frameStack[frameStackPointer - 1];
+            frameStackPointer - 1;
+            //Get return value
+            int retval = dataStack[dataStackPointer - 1];
+            //Clear stack entries between top and current stack pointer
+            dataStackPointer = stackPointer;
+            //Set stack pointer to previous stack frame value
+            stackPointer = prev;
+            //Pop return address and set program counter
+            pc = callStack[--callStackPointer];
+
+            top = dataStack[dataStackPointer - 1];
+        }
+    }
+    else {
+        errorString += "Invalid args for instruction 'read " + args + "'\n";
+        status++;
+    }
+    return status;
+}
 int retv(std::string args) {
     int status = 0;
     int size = split(args);
@@ -687,6 +852,39 @@ int retv(std::string args) {
             status++;
         }
         else {
+            //Get return value
+            int retval = dataStack[dataStackPointer - 1];
+            //Clear stack entries between top and current stack pointer
+            dataStackPointer = stackPointer;
+            //Set stack pointer to previous stack frame value
+            stackPointer = prev;
+            //Push return value
+            dataStack[dataStackPointer++] = gpreg = top = retval;
+            //Pop return address and set program counter
+            pc = callStack[--callStackPointer];
+
+            top = dataStack[dataStackPointer - 1];
+        }
+    }
+    else {
+        errorString += "Invalid args for instruction 'read " + args + "'\n";
+        status++;
+    }
+    return status;
+}
+int retvlex(std::string args) {
+    int status = 0;
+    int size = split(args);
+    if (size == 0) {
+        //Pop previous frame from frame stack
+        int prev = popFrame();
+        if (prev == -1) {
+            errorString += "No stack frame to return to in instructon 'ret'\n";
+            status++;
+        }
+        else {
+            prev = frameStack[frameStackPointer - 1];
+            frameStackPointer - 1;
             //Get return value
             int retval = dataStack[dataStackPointer - 1];
             //Clear stack entries between top and current stack pointer
@@ -750,7 +948,7 @@ int save(std::string args) {
     }
     return status;
 }
-int store(std::string args) {
+int savelex(std::string args) {
     std::transform(args.begin(), args.end(), args.begin(), [](unsigned char c) {return std::tolower(c);});
     int status = 0;
     int size = split(args);
@@ -762,7 +960,7 @@ int store(std::string args) {
         else {
             if (dataStack[dataStackPointer - 1] >= 0 && dataStack[dataStackPointer - 1] < dataStackPointer) {
                 dataStack[dataStack[dataStackPointer - 1]] = gpreg = dataStack[dataStackPointer - 2];
-                dataStackPointer -= 2;
+                dataStackPointer--;
                 top = dataStack[dataStackPointer - 1];
             }
             else {
@@ -775,7 +973,7 @@ int store(std::string args) {
         if (argsBuffer[0] == "sp") {
             if ((dataStack[dataStackPointer - 1] + stackPointer) >= 0 && (dataStack[dataStackPointer - 1] + stackPointer) < dataStackPointer) {
                 dataStack[dataStack[dataStackPointer - 1] + stackPointer] = gpreg = dataStack[dataStackPointer - 2];
-                dataStackPointer -= 2;
+                dataStackPointer--;
                 top = dataStack[dataStackPointer - 1];
             }
             else {
@@ -789,6 +987,81 @@ int store(std::string args) {
     }
     else {
         errorString += "Invalid args for instruction 'save " + args + "'\n";
+        status++;
+    }
+    return status;
+}
+int store(std::string args) {
+    std::transform(args.begin(), args.end(), args.begin(), [](unsigned char c) {return std::tolower(c);});
+    int status = 0;
+    int size = split(args);
+    if (size == 0) {
+        if (dataStackPointer < 3) {
+            errorString += "Stack must contain at least two items for instruction: store\n";
+            status++;
+        }
+        else {
+            if (dataStack[dataStackPointer - 1] >= 0 && dataStack[dataStackPointer - 1] < dataStackPointer) {
+                dataStack[dataStack[dataStackPointer - 1]] = gpreg = dataStack[dataStackPointer - 2];
+                dataStackPointer -= 2;
+                top = dataStack[dataStackPointer - 1];
+            }
+            else {
+                errorString += "Invalid address " + std::to_string(dataStack[dataStackPointer - 1]) + " for store instruction\n";
+                status++;
+            }
+        }
+    }
+    else if (size == 1) {
+        if (argsBuffer[0] == "sp") {
+            if ((dataStack[dataStackPointer - 1] + stackPointer) >= 0 && (dataStack[dataStackPointer - 1] + stackPointer) < dataStackPointer) {
+                dataStack[dataStack[dataStackPointer - 1] + stackPointer] = gpreg = dataStack[dataStackPointer - 2];
+                dataStackPointer -= 2;
+                top = dataStack[dataStackPointer - 1];
+            }
+            else {
+                errorString += "Invalid address " + std::to_string(dataStack[dataStackPointer - 1]) + " for store instruction\n";
+                status++;
+            }
+        }
+        else {
+            errorString += "Invalid register argument for instruction 'store " + args + "\n";
+        }
+    }
+    else {
+        errorString += "Invalid args for instruction 'store " + args + "'\n";
+        status++;
+    }
+    return status;
+}
+int storelex(std::string args) {
+    std::transform(args.begin(), args.end(), args.begin(), [](unsigned char c) {return std::tolower(c);});
+    int status = 0;
+    int size = split(args);
+    if (size == 2) {
+
+
+        // Get address of last call frame with specified scope
+        int addr = -1;
+        for (int x = callStackPointer - 1; x >= 0; x--) {
+            if (lexStack[x] == stoi(argsBuffer[0])) {
+                errorString += std::to_string(x);
+                addr = x;
+                break;
+            } 
+        }
+        if (addr == -1) {
+            errorString += "No lex frame found with scope " + argsBuffer[0] + "\n";
+            status++;
+        }
+        else {
+            int offset = stoi(argsBuffer[1]);
+            dataStack[frameStack[addr] + offset] = dataStack[dataStackPointer - 1];
+            dataStackPointer--;
+        }
+    }
+    else {
+        errorString += "Invalid args for instruction 'storelex " + args + "'\n";
         status++;
     }
     return status;

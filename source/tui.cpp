@@ -102,8 +102,9 @@ int TUI() {
         return vbox({
             hbox({
                 make_scroll_box("──────────Program Memory", programMemory, PROGRAM_MEMORY_SIZE, pc, pm_scroll_offset) | flex,
-                make_scroll_int_box("───────────Data Stack──", dataStack, dataStackPointer, stackPointer, ds_scroll_offset) | flex,
-                make_scroll_int_box("───────────Call Stack──", callStack, callStackPointer, callStackPointer - 1, cs_scroll_offset) | flex,
+                make_scroll_int_box("────Data Stack────", dataStack, dataStackPointer, stackPointer, ds_scroll_offset) | flex,
+                make_scroll_int_box("────Call Stack────", callStack, callStackPointer, callStackPointer - 1, cs_scroll_offset) | flex,
+                // make_scroll_int_box("────Lex Stack────", lexStack, callStackPointer, callStackPointer - 1, cs_scroll_offset) | flex,
                 vbox({
                     make_box("────────────Registers──", registers, REGISTER_COUNT),
                     window(text("────────────Input──"), vbox({input_component->Render()})),

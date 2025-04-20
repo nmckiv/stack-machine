@@ -27,20 +27,21 @@ std::string programMemory[PROGRAM_MEMORY_SIZE];
 int dataStack[DATA_STACK_SIZE];
 int callStack[CALL_STACK_SIZE];
 int frameStack[FRAME_STACK_SIZE];
+int lexStack[LEX_STACK_SIZE];
 
 void reset() {
     // std::cout << "Resetting stack machine" << std::endl;
     pc = dataStackPointer = callStackPointer = stackPointer = frameStackPointer = gpreg = top = 0;
+
+    /* I don't think this bricks anything... */
+    callStackPointer = frameStackPointer = 1;
+    callStack[0] = frameStack[0] = lexStack[0] = 0;
+    /* I don't think this bricks anything... */
+
     for (int x = 0; x < PROGRAM_MEMORY_SIZE; x++) {
         programMemory[x] = "";
     }
 }
-
-// enum Instructions {
-//     ADD, BRT, BRZ, CALL, DIV, DUP, END, EQ, GE, GT, 
-//     JUMP, LABEL, LOAD, LT, MOD, MUL, POP, PRINT, PRINTS, PUSH,
-//     READ, READS, RET, RETV, SAVE, STORE, SUB
-// }
 
 int processLabels() {
 
@@ -60,10 +61,12 @@ int processLabels() {
         //Check if opcode is valid
         //If not treat it as a label
         if (opcode != "add" && opcode != "brt" && opcode != "brz" && opcode != "call" && opcode != "div" && opcode != "dup"
-            && opcode != "end" && opcode != "eq" && opcode != "ge" && opcode != "gt" && opcode != "jump"
+            && opcode != "end" && opcode != "eq" && opcode != "ge" && opcode != "gt" && opcode != "jump" && opcode != "le"
             && opcode != "load" && opcode != "lt" && opcode != "mod" && opcode != "mul" && opcode != "pop"
             && opcode != "print" && opcode != "prints" && opcode != "push" && opcode != "read" && opcode != "reads"
-            && opcode != "ret" && opcode != "retv" && opcode != "save" && opcode != "store" && opcode != "sub") {
+            && opcode != "ret" && opcode != "retv" && opcode != "save" && opcode != "store" && opcode != "sub" && opcode != "neq"
+            && opcode != "loadlex" && opcode != "sub" && opcode != "calllex" && opcode != "savelex" && opcode != "storelex" 
+            && opcode != "retlex" && opcode != "retvlex") {
                 if (std::all_of(args.begin(), args.end(), [](unsigned char c) {return std::isspace(c);})) {
                     //Process as a label
                     std::transform(opcode.begin(), opcode.end(), opcode.begin(), [](unsigned char c) {return std::tolower(c);});                    
@@ -151,14 +154,18 @@ int executeInstruction(std::string instruction) {
     else if (opcode == "brt")       status += brt(args);
     else if (opcode == "brz")       status += brz(args);
     else if (opcode == "call")      status += call(args);
+    else if (opcode == "calllex")   status += calllex(args);
     else if (opcode == "div")       status += div(args);
     else if (opcode == "dup")       status += dup(args);
     else if (opcode == "end")       status += end(args);
     else if (opcode == "eq")        status += eq(args);
+    else if (opcode == "neq")       status += neq(args);
     else if (opcode == "ge")        status += ge(args);
     else if (opcode == "gt")        status += gt(args);
     else if (opcode == "jump")      status += jump(args);
+    else if (opcode == "le")        status += le(args);
     else if (opcode == "load")      status += load(args);
+    else if (opcode == "loadlex")   status += loadlex(args);
     else if (opcode == "lt")        status += lt(args);
     else if (opcode == "mod")       status += mod(args);
     else if (opcode == "mul")       status += mul(args);
@@ -169,9 +176,13 @@ int executeInstruction(std::string instruction) {
     else if (opcode == "read")      status += read(args);
     else if (opcode == "reads")     status += reads(args);
     else if (opcode == "ret")       status += ret(args);
+    else if (opcode == "retlex")    status += retlex(args);
     else if (opcode == "retv")      status += retv(args);
+    else if (opcode == "retvlex")   status += retvlex(args);
     else if (opcode == "save")      status += save(args);
+    else if (opcode == "savelex")   status += savelex(args);
     else if (opcode == "store")     status += store(args);
+    else if (opcode == "storelex")  status += storelex(args);
     else if (opcode == "sub")       status += sub(args);
 
     return status;

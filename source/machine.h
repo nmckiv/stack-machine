@@ -5,6 +5,7 @@
 #define DATA_STACK_SIZE 1024
 #define CALL_STACK_SIZE 1024
 #define FRAME_STACK_SIZE 1024
+#define LEX_STACK_SIZE 1024
 #define REGISTER_COUNT 6
 
 #include <string>
@@ -28,6 +29,7 @@ extern std::string programMemory[PROGRAM_MEMORY_SIZE];
 extern int dataStack[DATA_STACK_SIZE];
 extern int callStack[CALL_STACK_SIZE];
 extern int frameStack[FRAME_STACK_SIZE];
+extern int lexStack[LEX_STACK_SIZE];
 
 void reset();
 int load_file(std::string path);
