@@ -115,7 +115,6 @@ int load_file(std::string path) {
 //Perform fetch, increment, execute sequence
 int executionStep() {
 
-
     if (pc >= instructionCount) {
         errorString += "Program counter has exceeded instructions.  Please terminate with END.\n";
         return 1;

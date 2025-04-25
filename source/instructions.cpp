@@ -502,8 +502,24 @@ int loadlex(std::string args) {
     int status = 0;
     int size = split(args);
     if (size == 0) {
-        errorString += "Invalid args for instruction 'loadlex " + args + "'\n";
-        status++;
+        int addr = -1;
+        for (int x = callStackPointer - 1; x >= 0; x--) {
+            // printf("lex stack at %d is %d\n", x, lexStack[x]);
+            if (lexStack[x] == dataStack[dataStackPointer - 2]) {
+                // printf("Breaking out of loop at index %d\n", x);
+                addr = x;
+                break;
+            }
+        }
+        if (addr == -1) {
+            errorString += "No lex frame found with scope " + argsBuffer[0] + "\n";
+            status++;
+        }
+        else {
+            int offset = dataStack[dataStackPointer - 1];
+            dataStack[dataStackPointer - 2] = gpreg = top = dataStack[frameStack[addr] + offset];
+            dataStackPointer -= 1;
+        }
     }
     else if (size == 2) {
         // Get address of last call frame with specified scope
@@ -1038,14 +1054,31 @@ int storelex(std::string args) {
     std::transform(args.begin(), args.end(), args.begin(), [](unsigned char c) {return std::tolower(c);});
     int status = 0;
     int size = split(args);
-    if (size == 2) {
+    if (size == 0) {
+        int addr = -1;
+        for (int x = callStackPointer - 1; x >= 0; x--) {
+            if (lexStack[x] == dataStack[dataStackPointer - 3]) {
+                addr = x;
+                break;
+            }
+        }
+        if (addr == -1) {
+            errorString += "No lex frame found with scope " + argsBuffer[0] + "\n";
+            status++;
+        }
+        else {
+            int offset = dataStack[dataStackPointer - 2];
+            dataStack[frameStack[addr] + offset] = dataStack[dataStackPointer - 1];
+            dataStackPointer -= 3;
+        }
+    }
+    else if (size == 2) {
 
 
         // Get address of last call frame with specified scope
         int addr = -1;
         for (int x = callStackPointer - 1; x >= 0; x--) {
             if (lexStack[x] == stoi(argsBuffer[0])) {
-                errorString += std::to_string(x);
                 addr = x;
                 break;
             } 

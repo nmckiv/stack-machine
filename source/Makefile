@@ -1,25 +1,58 @@
-# Compiler
-CXX = g++
+# ------------------------------------------------------------------
+#  TOOLCHAIN
+CXX      := g++
+CXXFLAGS := -std=c++17 -I./ftxui -O2 #-Wall -Wextra
+LDFLAGS  := -L./ftxui
+LIBS     := -lftxui-component -lftxui-dom -lftxui-screen
 
-# Compiler flags
-CXXFLAGS = -std=c++17 -I./ftxui
+# ------------------------------------------------------------------
+#  SOURCE LISTS
+APP_SRCS := main.cpp machine.cpp instructions.cpp tui.cpp console.cpp
+LIB_SRCS := machine.cpp instructions.cpp globals.cpp          # only VM implementation
+LIB_OBJS := $(LIB_SRCS:.cpp=.o)
 
-# Library search path
-LDFLAGS = -L./ftxui
+# ------------------------------------------------------------------
+#  ORIGINAL “MONOLITHIC” EXECUTABLE  (unchanged behaviour)
+TARGET := stack-machine
 
-# Libraries
-LIBS = -lftxui-component -lftxui-dom -lftxui-screen
+$(TARGET): $(APP_SRCS)
+	@echo "  LINK  $@  (monolithic)"
+	$(CXX) $(APP_SRCS) -o $@ $(CXXFLAGS) $(LDFLAGS) $(LIBS)
 
-# Source files
-SRCS = main.cpp machine.cpp instructions.cpp tui.cpp console.cpp
+# ------------------------------------------------------------------
+#  STATIC LIBRARY
+LIBNAME := libstackvm.a
 
-# Output executable
-TARGET = stack-machine
+$(LIBNAME): $(LIB_OBJS)
+	@echo "  AR    $@"
+	@ar rcs $@ $^
 
-# Build target
-$(TARGET): $(SRCS)
-	$(CXX) $(SRCS) -o $(TARGET) $(CXXFLAGS) $(LDFLAGS) $(LIBS)
+%.o: %.cpp
+	@echo "  CXX   $<"
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Clean target
-clean:
-	rm -f $(TARGET)
+# convenience aliases
+.PHONY: lib
+lib: $(LIBNAME)
+
+.PHONY: clean-lib
+clean-lib:
+	@rm -f $(LIB_OBJS) $(LIBNAME)
+	@echo "  CLEAN libstackvm.a and object files"
+
+# ------------------------------------------------------------------
+#  DRIVER BUILT FROM GENERATED CODE  (uses the static library)
+#  Assumes autogen.cpp is produced by your compiler.
+MYPROG := myprog
+AUTOGEN := autogen.cpp           # change if your generator writes a different name
+
+$(MYPROG): $(AUTOGEN) $(LIBNAME)
+	@echo "  LINK  $@  (driver)"
+	$(CXX) $(CXXFLAGS) -I. $< -o $@ -L. -lstackvm $(LDFLAGS) $(LIBS)
+
+# ------------------------------------------------------------------
+#  GLOBAL CLEAN
+.PHONY: clean
+clean: clean-lib
+	@rm -f $(TARGET) $(MYPROG)
+	@echo "  CLEAN executable(s)"

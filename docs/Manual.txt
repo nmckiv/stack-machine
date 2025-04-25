@@ -194,7 +194,7 @@ Memory:
 	-Pre Stack:	(Address)		(Address)
 	-Post Stack:	(Value)			(Value)
 	-Side Effects:	GPREG is set to loaded value
-	-Description:	Fetches a value from memory.  Argument is offset for address, if absent go from 0.
+	-Description:	Fetches a value from memory.  Argument is offset for address, if absent go from 0.  If argument is an int, it is the number of frames to backtrack.  LOAD 0 works the same as LOAD SP.
 
     SAVE
 	-Usage:		SAVE			SAVE <int literal, label, register>
@@ -204,7 +204,7 @@ Memory:
 	-Description:	Saves a value to memory.  Argument is offset for address, if absent go from 0.  Leaves value on the stack afterward.
 
     STORE
-	-Usage:		SAVE			SAVE <int literal, label, register>
+	-Usage:		STORE			STORE <int literal, label, register>
 	-Pre Stack:	(Value, Address)	(Value, Address)
 	-Post Stack:	(Value)			(Value)
 	-Side Effects:	GPREG is set to saved value
@@ -245,3 +245,14 @@ Misc:
 	-Side Effects:	Exits program with success code.
 	-Description:	All programs must be concluded with an END instruction to be valid.  Closes program with success.
 
+New Instructions to add for compiler
+NEQ			-->	not equal to
+LOADLEX		-->	load based on lexical backtrack and offset
+CALLLEX		-->	call and push frame scope to lexical scope stack
+SAVELEX		--> copy value to memory based on lexical frame and offset
+STORELEX	-->	store value to memory based on lexical frame and offset, pop from stack top
+
+CALLLEX		<LABEL> <SCOPE>
+LOADLEX		<SCOPE> <OFFSET>
+SAVELEX		<SCOPE> <OFFSET>
+STORELEX	<SCOPE> OFFSET>
